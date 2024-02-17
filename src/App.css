@@ -1,0 +1,119 @@
+/*
+  Based on TailwindCSS recommendations,
+  consider using classes instead of the `@apply` directive
+  @see https://tailwindcss.com/docs/reusing-styles#avoiding-premature-abstraction
+*/
+*,
+*::before,
+*::after {
+  @apply box-border;
+}
+body {
+  @apply m-0;
+}
+  .duration {
+    transition-duration: 150ms;
+  }
+.video-container {
+  @apply relative w-[90%] max-w-[1000px] flex justify-center bg-[black];
+  margin-left: 3%;
+}
+.video-container.theater,
+.video-container.full-screen {
+  @apply max-w-[initial] w-full;
+}
+.video-container.theater {
+  @apply max-h-[90vh];
+}
+.video-container.full-screen {
+  @apply max-h-screen;
+}
+video {
+  @apply w-full;
+}
+.video-controls-container {
+  @apply absolute text-[white] z-[100] opacity-0 transition-opacity duration ease-[ease-in-out] bottom-0 inset-x-0 before:content-[""] before:absolute before:w-full before:aspect-[6_/_1] before:z-[-1] before:pointer-events-none before:bottom-0;
+}
+.video-controls-container::before {
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.75), transparent);
+}
+.video-container:hover .video-controls-container,
+.video-container:focus-within .video-controls-container,
+.video-container.paused .video-controls-container {
+  @apply opacity-100;
+}
+.video-controls-container .controls {
+  @apply flex gap-2 items-center p-1;
+}
+.video-controls-container .controls button {
+  @apply text-inherit h-[30px] w-[30px] text-[1.1rem] cursor-pointer opacity-[0.85] transition-opacity duration ease-[ease-in-out] p-0 border-[none] hover:opacity-100;
+  background: none;
+}
+.video-container.theater .tall {
+  @apply hidden;
+}
+.video-container:not(.theater) .wide {
+  @apply hidden;
+}
+.volume-high-icon,
+.volume-low-icon,
+.volume-muted-icon {
+  @apply hidden;
+}
+
+.volume-container {
+  @apply flex items-center;
+}
+.volume-slider {
+  @apply w-0 origin-left scale-x-0;
+  transition: width 150ms ease-in-out, transform 150ms ease-in-out;
+}
+.volume-container:hover .volume-slider,
+.volume-slider:focus-within {
+  @apply w-[100px] scale-x-100;
+}
+.duration-container {
+  @apply flex items-center gap-1 grow;
+}
+.video-container.captions .captions-btn {
+  @apply border-b-[3px] border-b-[red] border-solid;
+}
+.video-controls-container .controls button.wide-btn {
+  @apply w-[50px];
+}
+.timeline-container {
+  @apply h-[7px] cursor-pointer flex items-center;
+  margin-inline: 0.5rem;
+}
+.timeline {
+  @apply bg-[rgba(100,100,100,0.5)] h-[3px] w-full relative before:content-[""] before:absolute before:right-[calc(100%_-_var(--preview-position)_*_100%)] before:bg-[rgb(150,150,150)] before:hidden before:left-0 before:inset-y-0 after:content-[""] after:absolute after:right-[calc(100%_-_var(--progress-position)_*_100%)] after:bg-[red] after:left-0 after:inset-y-0;
+}
+.timeline .thumb-indicator {
+  @apply absolute -translate-x-2/4 scale-x-[var(--scale)] scale-y-[var(--scale)] h-[200%] left-[calc(var(--progress-position)*100%)] bg-red-500 transition-transform duration ease-in-out aspect-square rounded-[50%] -top-2/4;
+  --scale: 0;
+ }
+.timeline .preview-img {
+  @apply absolute h-20 aspect-video top-[-1rem] -translate-x-2/4 -translate-y-full left-[calc(var(--preview-position)_*_100%)] rounded hidden border-2 border-solid border-[white];
+}
+.thumbnail-img {
+  @apply absolute w-full h-full hidden inset-0;
+}
+.video-container.scrubbing .thumbnail-img {
+  @apply block;
+}
+.video-container.scrubbing .preview-img,
+.timeline-container:hover .preview-img {
+  @apply block;
+}
+.video-container.scrubbing .timeline::before,
+.timeline-container:hover .timeline::before {
+  @apply block;
+}
+.video-container.scrubbing .thumb-indicator,
+.timeline-container:hover .thumb-indicator {
+  --scale: 1;
+}
+.video-container.scrubbing .timeline,
+.timeline-container:hover .timeline {
+  @apply h-full;
+}
