@@ -21,6 +21,9 @@ const Video = ({
   return (
     <div
       onClick={() => playSelectedVideo(index)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") playSelectedVideo(index);
+      }}
       className={`${backgroundColor} shadow-md w-full card border cursor-pointer mb-2.5 p-2.5 rounded-[5px] border-solid border-[#eee]`}
       draggable
       onDragStart={onDragStart}
@@ -28,7 +31,7 @@ const Video = ({
     >
       <div className="flex items-center mb-4">
         <img
-          src={`${IMAGE_BASE_URL + video.thumb}`}
+          src={IMAGE_BASE_URL + video.thumb}
           alt={video.title}
           className="w-40 h-24 rounded-lg mr-4"
         />

@@ -24,7 +24,7 @@ To run this project, follow these steps:
   - **m:** Mute and unmute the video.
   - **arrowleft** or **j:** Skip backward by 5 seconds.
   - **arrowright** or **l:** Skip forward by 5 seconds.
-- **Local Storage Support:** User progress, including the current playback position, is stored in the browser's local storage. This allows users to resume watching from where they left off when they return to the application.
+- **Local Storage Support:** User progress, all videos playback position, is stored in the browser's local storage. This allows users to resume watching from where they left off when they return to the application.
 
 **Notes:**
 

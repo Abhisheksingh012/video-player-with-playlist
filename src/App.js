@@ -23,7 +23,7 @@ const App = () => {
         currentPlayedVideo={videosArray[currentSelectedVideoIndex]}
       />
       <Playlist
-        videosArray={videosArray}
+        videos={videosArray}
         currentSelectedVideoIndex={currentSelectedVideoIndex}
         playSelectedVideo={playSelectedVideo}
       />
