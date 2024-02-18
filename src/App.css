@@ -1,8 +1,3 @@
-/*
-  Based on TailwindCSS recommendations,
-  consider using classes instead of the `@apply` directive
-  @see https://tailwindcss.com/docs/reusing-styles#avoiding-premature-abstraction
-*/
 *,
 *::before,
 *::after {
@@ -11,22 +6,14 @@
 body {
   @apply m-0;
 }
-  .duration {
-    transition-duration: 150ms;
-  }
-.video-container {
-  @apply relative w-[90%] max-w-[1000px] flex justify-center bg-[black];
-  margin-left: 3%;
-}
-.video-container.theater,
-.video-container.full-screen {
-  @apply max-w-[initial] w-full;
+.duration {
+  transition-duration: 150ms;
 }
 .video-container.theater {
-  @apply max-h-[90vh];
+  @apply h-[95vh];
 }
 .video-container.full-screen {
-  @apply max-h-screen;
+  @apply h-screen;
 }
 video {
   @apply w-full;
@@ -48,17 +35,6 @@ video {
 .video-controls-container .controls button {
   @apply text-inherit h-[30px] w-[30px] text-[1.1rem] cursor-pointer opacity-[0.85] transition-opacity duration ease-[ease-in-out] p-0 border-[none] hover:opacity-100;
   background: none;
-}
-.video-container.theater .tall {
-  @apply hidden;
-}
-.video-container:not(.theater) .wide {
-  @apply hidden;
-}
-.volume-high-icon,
-.volume-low-icon,
-.volume-muted-icon {
-  @apply hidden;
 }
 
 .volume-container {
@@ -91,19 +67,6 @@ video {
 .timeline .thumb-indicator {
   @apply absolute -translate-x-2/4 scale-x-[var(--scale)] scale-y-[var(--scale)] h-[200%] left-[calc(var(--progress-position)*100%)] bg-red-500 transition-transform duration ease-in-out aspect-square rounded-[50%] -top-2/4;
   --scale: 0;
- }
-.timeline .preview-img {
-  @apply absolute h-20 aspect-video top-[-1rem] -translate-x-2/4 -translate-y-full left-[calc(var(--preview-position)_*_100%)] rounded hidden border-2 border-solid border-[white];
-}
-.thumbnail-img {
-  @apply absolute w-full h-full hidden inset-0;
-}
-.video-container.scrubbing .thumbnail-img {
-  @apply block;
-}
-.video-container.scrubbing .preview-img,
-.timeline-container:hover .preview-img {
-  @apply block;
 }
 .video-container.scrubbing .timeline::before,
 .timeline-container:hover .timeline::before {
@@ -117,3 +80,4 @@ video {
 .timeline-container:hover .timeline {
   @apply h-full;
 }
+

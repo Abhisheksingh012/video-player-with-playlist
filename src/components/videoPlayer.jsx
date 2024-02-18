@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { formatDuration } from "../utils/timeUtils";
 
 const VideoPlayer = ({ currentPlayedVideo }) => {
   const [play, setPlay] = useState(false);
@@ -16,11 +17,8 @@ const VideoPlayer = ({ currentPlayedVideo }) => {
   useEffect(() => {
     setIsVideoLoaded(false);
   }, [currentPlayedVideo.sources]);
+
   useEffect(() => {
-    document.addEventListener("keydown", handleKeyPress);
-    document.addEventListener("fullscreenchange", handleFullScreenChange);
-    document.addEventListener("mouseup", handleMouseUpOnDocument);
-    document.addEventListener("mousemove", handleMouseMoveOnDocument);
     videoRef.current.addEventListener(
       "enterpictureinpicture",
       handleEnterPictureInPicture
@@ -30,10 +28,6 @@ const VideoPlayer = ({ currentPlayedVideo }) => {
       handleLeavePictureInPicture
     );
     return () => {
-      document.removeEventListener("mouseup", handleMouseUpOnDocument);
-      document.removeEventListener("keydown", handleKeyPress);
-      document.removeEventListener("fullscreenchange", handleFullScreenChange);
-      document.removeEventListener("mousemove", handleMouseMoveOnDocument);
       videoRef.current.removeEventListener(
         "enterpictureinpicture",
         handleEnterPictureInPicture
@@ -43,7 +37,58 @@ const VideoPlayer = ({ currentPlayedVideo }) => {
         handleLeavePictureInPicture
       );
     };
+  }, [videoRef.current]);
+  useEffect(() => {
+    document.addEventListener("keydown", handleKeyPress);
+    document.addEventListener("fullscreenchange", handleFullScreenChange);
+    document.addEventListener("mouseup", handleMouseUpOnDocument);
+    document.addEventListener("mousemove", handleMouseMoveOnDocument);
+
+    return () => {
+      document.removeEventListener("mouseup", handleMouseUpOnDocument);
+      document.removeEventListener("keydown", handleKeyPress);
+      document.removeEventListener("fullscreenchange", handleFullScreenChange);
+      document.removeEventListener("mousemove", handleMouseMoveOnDocument);
+    };
   });
+  //handling sideEffects of diiferent events
+
+  const handleKeyPress = (e) => {
+    const tagName = document.activeElement.tagName.toLowerCase();
+
+    if (tagName === "input") return;
+
+    switch (e.key.toLowerCase()) {
+      case " ":
+        if (tagName === "button") return;
+      case "k":
+        e.preventDefault();
+        togglePlay();
+        break;
+      case "f":
+        toggleFullScreenMode();
+        break;
+      case "t":
+        toggleTheaterMode();
+        break;
+      case "i":
+        setScreenMode("");
+        break;
+      case "m":
+        toggleMute();
+        break;
+      case "arrowleft":
+      case "j":
+        skip(-5);
+        break;
+      case "arrowright":
+      case "l":
+        skip(5);
+        break;
+      default:
+        break;
+    }
+  };
   const handleFullScreenChange = () => {
     setScreenMode((prvState) => {
       return prvState === "full-screen" ? "" : "full-screen";
@@ -63,89 +108,6 @@ const VideoPlayer = ({ currentPlayedVideo }) => {
     setPlay(false);
     videoRef.current.pause();
   };
-  const toggleMiniPlayer = () => {
-    if (screenMode === "mini") {
-      document.exitPictureInPicture();
-    } else {
-      videoRef.current.requestPictureInPicture();
-    }
-  };
-  const handleKeyPress = (e) => {
-    const tagName = document.activeElement.tagName.toLowerCase();
-
-    if (tagName === "input") return;
-
-    switch (e.key.toLowerCase()) {
-      case " ":
-        if (tagName === "button") return;
-      case "k":
-        togglePlay();
-        break;
-      case "f":
-        setScreenMode("full-screen");
-        break;
-      case "t":
-        setScreenMode("theater");
-        break;
-      case "i":
-        setScreenMode("");
-        break;
-      case "m":
-        toggleMute();
-        break;
-      case "arrowleft":
-      case "j":
-        skip(-5);
-        break;
-      case "arrowright":
-      case "l":
-        skip(5);
-        break;
-    }
-  };
-  const isPlaying = () => {
-    return (
-      videoRef.current &&
-      videoRef.current.currentTime > 0 &&
-      !videoRef.current.paused &&
-      !videoRef.current.ended &&
-      videoRef.current.readyState > videoRef.current.HAVE_CURRENT_DATA
-    );
-  };
-  const togglePlay = (e) => {
-    play ? videoRef.current.pause() : videoRef.current.play();
-    setPlay((prvValue) => !prvValue);
-  };
-  const toggleMute = () => {
-    if (videoRef.current.muted) {
-      setVolumeSlider(0.5);
-    }
-    videoRef.current.muted = !videoRef.current.muted;
-  };
-
-  const toggleFullScreenMode = () => {
-    if (document.fullscreenElement) {
-      document.exitFullscreen();
-    } else {
-      videoRef.current.requestFullscreen();
-    }
-  };
-  const toggleScrubbing = (e) => {
-    const rect = timelineRef.current.getBoundingClientRect();
-    const percent =
-      Math.min(Math.max(0, e.x - rect.x), rect.width) / rect.width;
-    const isleftClick = (e.buttons & 1) === 1;
-    SetIsSkipping(isleftClick);
-    if (isleftClick) {
-      SetWasPaused(videoRef.current.paused);
-      videoRef.current.pause();
-    } else {
-      videoRef.current.currentTime = percent * videoRef.current.duration;
-      if (!wasPaused && !isPlaying()) videoRef.current.play();
-    }
-    handleTimelineChange(e);
-  };
-
   const handleVolumeChange = () => {
     if (videoRef.current.muted || videoRef.current.volume === 0) {
       setVolumeSlider(0);
@@ -180,7 +142,7 @@ const VideoPlayer = ({ currentPlayedVideo }) => {
       setCurrentTimePercent(percent);
     }
   };
-  const handelLoadMataData = () => {
+  const handleLoadMataData = () => {
     if (videoRef.current) {
       const playbacktime = localStorage.getItem(currentPlayedVideo.title);
       if (playbacktime && +playbacktime < videoRef.current.duration) {
@@ -195,151 +157,207 @@ const VideoPlayer = ({ currentPlayedVideo }) => {
       setIsVideoLoaded(true);
     }
   };
-  const digitFormate = new Intl.NumberFormat(undefined, {
-    minimumIntegerDigits: 2,
-  });
-  const formatDuration = (time) => {
-    const seconds = Math.floor(time % 60);
-    const minutes = Math.floor(time / 60) % 60;
-    const hours = Math.floor(time / 3600);
-    if (hours === 0) {
-      return `${minutes}:${digitFormate.format(seconds)}`;
-    } else {
-      return `${hours}:${digitFormate.format(minutes)}:${digitFormate.format(
-        seconds
-      )}`;
-    }
-  };
-  const skip = (duration) => {
-    videoRef.current.currentTime += duration;
-  };
   const handlePlaybackSpeedChange = () => {
     let newPlaybackRate = playbackSpeed + 0.25;
     if (newPlaybackRate > 2) newPlaybackRate = 0.25;
     setPlaybackSpeed(newPlaybackRate);
     videoRef.current.playbackRate = newPlaybackRate;
   };
+
+  // toggle diffrent functionalities
+  const togglePlay = () => {
+    play ? videoRef.current.pause() : videoRef.current.play();
+    setPlay((prvValue) => !prvValue);
+  };
+  const toggleMute = () => {
+    if (videoRef.current.muted) {
+      setVolumeSlider(0.5);
+    }
+    videoRef.current.muted = !videoRef.current.muted;
+  };
+  const toggleMiniPlayer = () => {
+    if (screenMode === "mini") {
+      document.exitPictureInPicture();
+    } else {
+      videoRef.current.requestPictureInPicture();
+    }
+  };
+  const toggleTheaterMode = () => {
+    setScreenMode((prvState) => {
+      return prvState === "theater" ? "" : "theater";
+    });
+  };
+
+  const toggleFullScreenMode = () => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    } else {
+      videoRef.current.requestFullscreen();
+    }
+  };
+  const toggleScrubbing = (e) => {
+    const rect = timelineRef.current.getBoundingClientRect();
+    const percent =
+      Math.min(Math.max(0, e.x - rect.x), rect.width) / rect.width;
+    const isleftClick = (e.buttons & 1) === 1;
+    SetIsSkipping(isleftClick);
+    if (isleftClick) {
+      SetWasPaused(videoRef.current.paused);
+      videoRef.current.pause();
+    } else {
+      videoRef.current.currentTime = percent * videoRef.current.duration;
+      if (!wasPaused && !isPlaying()) videoRef.current.play();
+    }
+    handleTimelineChange(e);
+  };
+
+  const isPlaying = () => {
+    return (
+      videoRef.current &&
+      videoRef.current.currentTime > 0 &&
+      !videoRef.current.paused &&
+      !videoRef.current.ended &&
+      videoRef.current.readyState > videoRef.current.HAVE_CURRENT_DATA
+    );
+  };
+
+  const skip = (duration) => {
+    videoRef.current.currentTime += duration;
+  };
+
   return (
-    <div className="w-8/12 p-4">
-      <div className={`video-container ${!play && "paused"}  ${screenMode}`}>
-        <div className="video-controls-container">
-          <div
-            style={{ "--progress-position": currentTimePercent }}
-            className="timeline-container"
-          >
+    <div className="flex-1 flex justify-center lg:px-2 lg:py-6 sticky top-0">
+      <div className="w-full">
+        <div
+          className={`video-container relative flex justify-center bg-[black] w-full ${
+            !play && "paused"
+          }  ${screenMode}`}
+        >
+          <div className="video-controls-container">
             <div
-              onMouseMove={handleTimelineChange}
-              onMouseDown={toggleScrubbing}
-              className="timeline"
-              ref={timelineRef}
+              style={{ "--progress-position": currentTimePercent }}
+              className="timeline-container"
             >
-              <div className="thumb-indicator"></div>
-            </div>
-          </div>
-          <div className="controls">
-            <button className="play-pause-btn">
-              {play ? (
-                <span
-                  onClick={togglePlay}
-                  className="material-symbols-outlined"
-                >
-                  pause
-                </span>
-              ) : (
-                <span
-                  onClick={togglePlay}
-                  className="material-symbols-outlined"
-                >
-                  play_arrow
-                </span>
-              )}
-            </button>
-            <div className="volume-container">
-              <button onClick={toggleMute} className="mute-btn">
-                {videoRef.current?.muted || volumeSlider == 0 ? (
-                  <span className="material-symbols-outlined">volume_off</span>
-                ) : volumeSlider < 0.5 && volumeSlider > 0 ? (
-                  <span className="material-symbols-outlined">volume_down</span>
-                ) : (
-                  <span className="material-symbols-outlined">volume_up</span>
-                )}
-              </button>
-              <input
-                value={volumeSlider}
-                onChange={(e) => handleRangeChange(e)}
-                className="volume-slider"
-                type="range"
-                min="0"
-                max="1"
-                step="any"
-              />
-            </div>
-            <div className="duration-container">
-              <div className="current-time">{currentTime}</div>/
-              <div className="total-time">
-                {formatDuration(videoRef.current?.duration ?? 0)}
+              <div
+                onMouseMove={handleTimelineChange}
+                onMouseDown={toggleScrubbing}
+                className="timeline"
+                ref={timelineRef}
+              >
+                <div className="thumb-indicator"></div>
               </div>
             </div>
-            <button
-              onClick={handlePlaybackSpeedChange}
-              className="speed-btn wide-btn"
-            >
-              {playbackSpeed}X
-            </button>
-            <button className="mini-player-btn">
-              <span
-                onClick={toggleMiniPlayer}
-                className="material-symbols-outlined"
+            <div className="controls">
+              <button className="play-pause-btn">
+                {play ? (
+                  <span
+                    onClick={togglePlay}
+                    className="material-symbols-outlined"
+                  >
+                    pause
+                  </span>
+                ) : (
+                  <span
+                    onClick={togglePlay}
+                    className="material-symbols-outlined"
+                  >
+                    play_arrow
+                  </span>
+                )}
+              </button>
+              <div className="volume-container">
+                <button onClick={toggleMute} className="mute-btn">
+                  {videoRef.current?.muted || volumeSlider == 0 ? (
+                    <span className="material-symbols-outlined">
+                      volume_off
+                    </span>
+                  ) : volumeSlider < 0.5 && volumeSlider > 0 ? (
+                    <span className="material-symbols-outlined">
+                      volume_down
+                    </span>
+                  ) : (
+                    <span className="material-symbols-outlined">volume_up</span>
+                  )}
+                </button>
+                <input
+                  value={volumeSlider}
+                  onChange={(e) => handleRangeChange(e)}
+                  className="volume-slider"
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="any"
+                />
+              </div>
+              <div className="duration-container">
+                <div className="current-time">{currentTime}</div>/
+                <div className="total-time">
+                  {videoRef.current?.duration
+                    ? formatDuration(videoRef.current?.duration)
+                    : "00.00"}
+                </div>
+              </div>
+              <button
+                onClick={handlePlaybackSpeedChange}
+                className="speed-btn wide-btn"
               >
-                picture_in_picture_alt
-              </span>
-            </button>
-            <button className="theater-btn">
-              {screenMode === "theater" ? (
+                {playbackSpeed}X
+              </button>
+              <button className="mini-player-btn">
                 <span
-                  onClick={() => setScreenMode("")}
+                  onClick={toggleMiniPlayer}
                   className="material-symbols-outlined"
                 >
-                  crop_7_5
+                  picture_in_picture_alt
                 </span>
-              ) : (
-                <span
-                  onClick={() => setScreenMode("theater")}
-                  className="material-symbols-outlined"
-                >
-                  crop_16_9
-                </span>
-              )}
-            </button>
-            <button>
-              {screenMode === "full-screen" ? (
-                <span
-                  onClick={toggleFullScreenMode}
-                  className="material-symbols-outlined"
-                >
-                  fullscreen_exit
-                </span>
-              ) : (
-                <span
-                  onClick={toggleFullScreenMode}
-                  className="material-symbols-outlined"
-                >
-                  pageless
-                </span>
-              )}
-            </button>
+              </button>
+              <button className="theater-btn">
+                {screenMode === "theater" ? (
+                  <span
+                    onClick={toggleTheaterMode}
+                    className="material-symbols-outlined"
+                  >
+                    crop_7_5
+                  </span>
+                ) : (
+                  <span
+                    onClick={toggleTheaterMode}
+                    className="material-symbols-outlined"
+                  >
+                    crop_16_9
+                  </span>
+                )}
+              </button>
+              <button>
+                {screenMode === "full-screen" ? (
+                  <span
+                    onClick={toggleFullScreenMode}
+                    className="material-symbols-outlined"
+                  >
+                    fullscreen_exit
+                  </span>
+                ) : (
+                  <span
+                    onClick={toggleFullScreenMode}
+                    className="material-symbols-outlined"
+                  >
+                    pageless
+                  </span>
+                )}
+              </button>
+            </div>
           </div>
-        </div>
 
-        <video
-          onClick={togglePlay}
-          ref={videoRef}
-          onVolumeChange={handleVolumeChange}
-          onTimeUpdate={handleTimeUpdateChange}
-          onLoadedMetadata={handelLoadMataData}
-          src={currentPlayedVideo.sources}
-          muted="muted"
-        ></video>
+          <video
+            onClick={togglePlay}
+            ref={videoRef}
+            onVolumeChange={handleVolumeChange}
+            onTimeUpdate={handleTimeUpdateChange}
+            onLoadedMetadata={handleLoadMataData}
+            src={currentPlayedVideo.sources}
+            muted="muted"
+          ></video>
+        </div>
       </div>
     </div>
   );

@@ -3,7 +3,7 @@ import Video from "./video";
 
 const Playlist = ({
   videosArray,
-  playSlectedVideo,
+  playSelectedVideo,
   currentSelectedVideoIndex,
 }) => {
   const [videos, setVideos] = useState([...videosArray]);
@@ -35,7 +35,7 @@ const Playlist = ({
 
   return (
     <div
-      className="flex flex-col items-center p-4 h-screen overflow-y-scroll w-4/12"
+      className="lg:max-w-md flex flex-col items-center p-4 flex-1"
       onDragEnd={handleDragEnd}
       onDragOver={(e) => e.preventDefault()}
     >
@@ -48,7 +48,7 @@ const Playlist = ({
           isDraggedOver={draggedOverIndex === index}
           onDragStart={() => handleDragStart(index)}
           onDragEnter={() => handleDragEnter(index)}
-          playSlectedVideo={playSlectedVideo}
+          playSelectedVideo={playSelectedVideo}
           currentSelectedVideoIndex={currentSelectedVideoIndex}
         />
       ))}
